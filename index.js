@@ -22,20 +22,56 @@ const storage = multer.diskStorage({
 });
 
 //Pou filtre fichier wap voye ale yo si yo c png oubyn jpeg
+
 const fileFilter = function (req, file, cb) {
   if (file.mimetype == "image/png" || file.mimetype == "image/jpeg") {
     cb(null, true);
   } else {
+    req.err = "file is not a valid image";
     cb(null, false);
   }
 };
 
 const upload = multer({ storage, fileFilter });
+
 //Pran fichier an epi transfomel en yon URL
+
 app.post("/", upload.single("image"), (req, res) => {
   console.log(req.file);
-  res.send("connected");
+  if (req.err) {
+    return res.status(422).json({ message: req.err });
+  }
+  res.status(200).json({
+    message: "Image uploaded succesfully",
+  });
 });
+
+//ajouter plusieurs fichiers pour konya li just pou plusieurs pdf
+const uploadFiles = multer({
+  storage,
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype == "applicaton/pdf") {
+      cb(null, true);
+    } else {
+      req.err = "file is not .pdf";
+      cb(null, false);
+    }
+  },
+});
+
+const uploadFiles = app.post(
+  "/files",
+  uploadFiles.array("documents"),
+  (req, file) => {
+    console.log(req.files);
+    if (req.err) {
+      return res.status(422).json({ message: req.err });
+    }
+    res.status(200).json({
+      message: "Documents uploaded succesfully",
+    });
+  },
+);
 
 port = process.env.PORT || 5050;
 
